@@ -1,4 +1,3 @@
-# rusty_joomla_rce
-
-Tech Details:
-https://blog.hacktivesecurity.com/index.php?controller=post&action=view&id_post=41
+# Rusty Joomla RCE
+## Details
+You can find technical details here: https://1day.dev/2019-10/rusty-joomla-rce.html
